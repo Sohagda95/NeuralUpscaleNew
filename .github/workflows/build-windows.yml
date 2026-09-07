@@ -1,0 +1,44 @@
+name: Build NeuralUpscale Windows EXE
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows:
+    name: Build Windows Installer
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        env:
+          SKIP_SETUP: "1"
+        run: npm ci
+
+      - name: Download and prepare AI resources
+        run: npm run setup
+
+      - name: Build Windows NSIS installer
+        run: npm run build
+
+      - name: Upload Windows installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: NeuralUpscale-Windows-Installer
+          path: release/*.exe
+          if-no-files-found: error
+          retention-days: 14
